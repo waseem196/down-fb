@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Required for the Docker multi-stage build (copies only what's needed to run)
-  output: process.env.DOCKER_BUILD === '1' ? 'standalone' : undefined,
+  // Standalone output works for Docker, Railway, Render, Fly.io, and VPS
+  output: 'standalone',
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: '**.facebook.com' },
