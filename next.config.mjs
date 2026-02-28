@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Standalone output works for Docker, Railway, Render, Fly.io, and VPS
-  output: 'standalone',
+  // 'standalone' is only used for Docker builds (set NEXT_STANDALONE=1 in the container).
+  // For local production preview, use `next start` which serves static files correctly.
+  output: process.env.NEXT_STANDALONE === '1' ? 'standalone' : undefined,
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: '**.facebook.com' },

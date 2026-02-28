@@ -16,6 +16,7 @@ interface RawFormat {
   acodec?: string;
   filesize?: number;
   filesize_approx?: number;
+  protocol?: string;
 }
 
 interface RawInfo {
@@ -31,19 +32,41 @@ interface RawInfo {
 
 // ── Format selection ──────────────────────────────────────────────────────────
 
+// Protocols that indicate a segmented/manifest stream which can't be directly
+// saved as a single file by the client (requires yt-dlp/ffmpeg to reassemble).
+const STREAMING_PROTOCOLS = new Set([
+  'http_dash_segments',
+  'hls',
+  'm3u8',
+  'm3u8_native',
+]);
+
 function pickFormats(formats: RawFormat[]): VideoFormat[] {
-  // Only consider formats that carry both video and audio in a single file
+  // Only consider direct-download formats that carry BOTH video and audio.
+  // Exclude DASH/HLS segment streams — those URLs can't be downloaded directly.
   const merged = formats.filter(
     (f) =>
       f.url &&
       f.ext === 'mp4' &&
       f.vcodec && f.vcodec !== 'none' &&
       f.acodec && f.acodec !== 'none' &&
-      f.height,
+      f.height &&
+      !STREAMING_PROTOCOLS.has(f.protocol ?? ''),
   );
 
-  // Fallback: any format with a URL
-  const pool = merged.length > 0 ? merged : formats.filter((f) => f.url);
+  // Fallback: any format with both codecs (may not be mp4)
+  const anyMerged = merged.length > 0
+    ? merged
+    : formats.filter(
+        (f) =>
+          f.url &&
+          f.vcodec && f.vcodec !== 'none' &&
+          f.acodec && f.acodec !== 'none' &&
+          !STREAMING_PROTOCOLS.has(f.protocol ?? ''),
+      );
+
+  // Last resort: any downloadable format
+  const pool = anyMerged.length > 0 ? anyMerged : formats.filter((f) => f.url);
 
   // Sort highest resolution first
   pool.sort((a, b) => (b.height ?? 0) - (a.height ?? 0));
@@ -74,6 +97,7 @@ function makeFormat(quality: 'hd' | 'sd', f: RawFormat): VideoFormat {
     label,
     url: f.url,
     ext: f.ext ?? 'mp4',
+    formatId: f.format_id,
     width: f.width,
     height: f.height,
     filesize: f.filesize ?? f.filesize_approx,
@@ -177,6 +201,7 @@ export async function extractVideoInfo(
           duration: raw.duration ?? 0,
           uploader: raw.uploader,
           formats,
+          sourceUrl: url,
         });
       } catch {
         reject(new Error('Failed to parse video information.'));

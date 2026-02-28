@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "Download Facebook videos, Reels, and Watch videos in HD quality for free. No login or registration needed. Fast and safe.",
 };
 
-const SUPPORTED = ["Public Videos", "Reels", "Watch Videos", "Stories"];
+const SUPPORTED = ["Public Videos", "Reels", "Watch Videos"];
 
 const STEPS = [
   {

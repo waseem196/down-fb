@@ -24,4 +24,3 @@ export const urlSchema = z.object({
     .refine(isFacebookUrl, 'Please enter a Facebook video URL (facebook.com or fb.watch).'),
 });
 
-export type UrlInput = z.infer<typeof urlSchema>;

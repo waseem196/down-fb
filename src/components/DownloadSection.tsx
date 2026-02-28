@@ -10,8 +10,8 @@ export default function DownloadSection() {
 
   return (
     <div className="w-full">
-      <DownloadForm onResult={setVideoInfo} onClear={() => setVideoInfo(null)} />
-      {videoInfo && <VideoResult info={videoInfo} />}
+      {!videoInfo && <DownloadForm onResult={setVideoInfo} onClear={() => setVideoInfo(null)} />}
+      {videoInfo && <VideoResult info={videoInfo} onClear={() => setVideoInfo(null)} />}
     </div>
   );
 }
